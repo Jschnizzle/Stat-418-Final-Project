@@ -1,0 +1,19 @@
+# --- OS / editor junk ---
+.DS_Store
+Thumbs.db
+*.tmp
+
+# --- R ---
+.Rhistory
+.RData
+.Rproj.user/
+*.Rproj
+
+# --- Python ---
+__pycache__/
+*.pyc
+
+# --- Kept locally, not published to the repo ---
+Old Data/
+Demonstration/
+Stat-418-repo/

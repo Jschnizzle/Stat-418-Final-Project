@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>STAT 418 Style Guide — Option 2: Westwood</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:opsz,wght@8..60,400;8..60,600;8..60,700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ucla-blue:#2774AE;   /* primary */
+    --dark-blue:#005587;   /* depth / headers */
+    --gs-blue:#6B96C3;     /* secondary */
+    --gold:#FFD100;        /* accent */
+    --charcoal:#2E3A45;    /* text */
+    --tint:#F2F5F8;
+    --slate:#5C6B79;
+    --hairline:#CFD8E0;
+    --white:#FFFFFF;
+    --serif:'Source Serif 4',Georgia,'Times New Roman',serif;
+    --sans:'Inter',Helvetica,Arial,sans-serif;
+    --mono:'JetBrains Mono','Consolas',monospace;
+  }
+  *{box-sizing:border-box;}
+  body{margin:0;background:var(--tint);color:var(--charcoal);font-family:var(--sans);line-height:1.6;}
+  .wrap{max-width:880px;margin:0 auto;padding:0 32px 80px;}
+  header.hero{background:linear-gradient(115deg,var(--dark-blue) 0%,var(--ucla-blue) 100%);color:var(--white);padding:64px 32px 56px;position:relative;}
+  header.hero::after{content:"";position:absolute;left:0;right:0;bottom:0;height:6px;background:var(--gold);}
+  header.hero .inner{max-width:880px;margin:0 auto;}
+  .eyebrow{text-transform:uppercase;letter-spacing:.18em;font-size:12px;color:var(--gold);font-weight:700;margin:0 0 14px;}
+  header.hero h1{font-family:var(--serif);font-weight:700;font-size:46px;line-height:1.1;margin:0 0 12px;}
+  header.hero p{font-size:18px;color:#DCE8F2;max-width:620px;margin:0;}
+  section{background:var(--white);border:1px solid var(--hairline);border-radius:8px;padding:38px 40px;margin-top:28px;}
+  h2{font-family:var(--serif);font-weight:700;font-size:26px;margin:0 0 6px;color:var(--dark-blue);}
+  h2 + .lead{color:var(--slate);margin:0 0 26px;font-size:15px;}
+  h3{text-transform:uppercase;letter-spacing:.12em;font-size:12.5px;color:var(--ucla-blue);font-weight:700;margin:30px 0 14px;}
+  .swatches{display:grid;grid-template-columns:repeat(2,1fr);gap:16px;}
+  .sw{border:1px solid var(--hairline);border-radius:8px;overflow:hidden;}
+  .sw .chip{height:84px;}
+  .sw .meta{padding:12px 14px;}
+  .sw .name{font-weight:700;font-size:14px;margin:0 0 4px;}
+  .sw .role{font-size:12.5px;color:var(--slate);margin:0 0 8px;}
+  .sw .codes{font-family:var(--mono);font-size:11.5px;color:var(--charcoal);}
+  .ratio{display:flex;height:30px;border-radius:6px;overflow:hidden;margin:8px 0 0;border:1px solid var(--hairline);}
+  .type-sample{border:1px solid var(--hairline);border-radius:8px;padding:24px 26px;margin-bottom:14px;}
+  .type-sample .label{font-family:var(--mono);font-size:11px;color:var(--slate);text-transform:uppercase;letter-spacing:.1em;margin:0 0 12px;}
+  .display-serif{font-family:var(--serif);font-weight:700;font-size:34px;line-height:1.15;margin:0;color:var(--dark-blue);}
+  .body-demo{font-family:var(--sans);font-size:15.5px;margin:8px 0 0;}
+  .mono-demo{font-family:var(--mono);font-size:13px;background:var(--dark-blue);color:#E6EDF5;border-radius:6px;padding:16px 18px;white-space:pre;overflow-x:auto;margin:0;}
+  .specs{width:100%;border-collapse:collapse;margin-top:4px;font-size:13.5px;}
+  .specs th,.specs td{text-align:left;padding:10px 12px;border-bottom:1px solid var(--hairline);vertical-align:top;}
+  .specs th{text-transform:uppercase;letter-spacing:.08em;font-size:11px;color:var(--slate);}
+  .specs td code{font-family:var(--mono);font-size:12px;background:var(--tint);padding:2px 6px;border-radius:4px;}
+  .note{font-size:13.5px;color:var(--slate);background:var(--tint);border-left:3px solid var(--gold);padding:12px 16px;border-radius:0 6px 6px 0;margin-top:18px;}
+  .mock{border:1px solid var(--hairline);border-radius:8px;overflow:hidden;margin-top:8px;}
+  .mock .bar{height:8px;background:linear-gradient(90deg,var(--ucla-blue) 0%,var(--ucla-blue) 78%,var(--gold) 78%,var(--gold) 100%);}
+  .mock .body{padding:26px 28px;}
+  .mock .body .k{text-transform:uppercase;letter-spacing:.16em;font-size:10.5px;color:var(--ucla-blue);font-weight:700;}
+  .mock .body h4{font-family:var(--serif);font-size:24px;margin:6px 0 4px;color:var(--dark-blue);}
+  .mock .body p{margin:0;color:var(--slate);font-size:14px;}
+  footer{max-width:880px;margin:36px auto 0;padding:0 32px;color:var(--slate);font-size:12.5px;}
+</style>
+</head>
+<body>
+<header class="hero">
+  <div class="inner">
+    <p class="eyebrow">STAT 418 · Visual Style Guide · Option 2 of 3</p>
+    <h1>Westwood</h1>
+    <p>A balanced identity — UCLA blue and gold meet Goldman's sky blue and serif poise in equal measure. Collegiate confidence with a professional finish.</p>
+  </div>
+</header>
+<div class="wrap">
+
+  <section>
+    <h2>Blend &amp; intent</h2>
+    <p class="lead">Roughly 50% UCLA, 50% Goldman Sachs.</p>
+    <p style="margin:0;font-size:15px;">Westwood splits the difference. UCLA blue leads and gold is a genuine accent (not just a hairline), giving the work clear school identity. Goldman contributes the serif headline voice, the calmer sky blue as a secondary, and a disciplined, white-forward layout. The result reads as a sharp academic deliverable that still looks like it came from a firm.</p>
+    <div class="ratio" title="Approximate palette weighting">
+      <div style="flex:34;background:var(--ucla-blue);"></div>
+      <div style="flex:22;background:var(--dark-blue);"></div>
+      <div style="flex:20;background:var(--gs-blue);"></div>
+      <div style="flex:16;background:var(--gold);"></div>
+      <div style="flex:8;background:var(--tint);"></div>
+    </div>
+  </section>
+
+  <section>
+    <h2>Color palette</h2>
+    <p class="lead">UCLA blue leads, dark blue grounds, sky blue supports, gold accents with intent.</p>
+    <div class="swatches">
+      <div class="sw"><div class="chip" style="background:#2774AE;"></div><div class="meta"><p class="name">UCLA Blue</p><p class="role">Primary — headers, links, key data</p><p class="codes">HEX #2774AE · RGB 39,116,174</p></div></div>
+      <div class="sw"><div class="chip" style="background:#005587;"></div><div class="meta"><p class="name">UCLA Dark Blue</p><p class="role">Depth, titles, dark fills</p><p class="codes">HEX #005587 · RGB 0,85,135</p></div></div>
+      <div class="sw"><div class="chip" style="background:#6B96C3;"></div><div class="meta"><p class="name">Goldman Sky Blue</p><p class="role">Secondary data, supporting fills</p><p class="codes">HEX #6B96C3 · RGB 107,150,195</p></div></div>
+      <div class="sw"><div class="chip" style="background:#FFD100;"></div><div class="meta"><p class="name">UCLA Gold</p><p class="role">Accent — callouts, highlights, rules</p><p class="codes">HEX #FFD100 · RGB 255,209,0</p></div></div>
+      <div class="sw"><div class="chip" style="background:#2E3A45;"></div><div class="meta"><p class="name">Charcoal</p><p class="role">Body text</p><p class="codes">HEX #2E3A45 · RGB 46,58,69</p></div></div>
+      <div class="sw"><div class="chip" style="background:#F2F5F8;border-bottom:1px solid #CFD8E0;"></div><div class="meta"><p class="name">Tint</p><p class="role">Page background, table banding</p><p class="codes">HEX #F2F5F8 · RGB 242,245,248</p></div></div>
+    </div>
+    <div class="note">Use the two blues to separate data series in charts; reserve gold for the single most important mark or call-to-attention. Set body text in Charcoal, not pure black, for a softer institutional feel.</div>
+  </section>
+
+  <section>
+    <h2>Typography</h2>
+    <p class="lead">Serif headlines with a geometric sans body — the balance point between Goldman's serif tradition and UCLA's clean, modern sans.</p>
+
+    <div class="type-sample">
+      <p class="label">Display / Headings — Source Serif 4</p>
+      <p class="display-serif">Acquire, understand, model, communicate.</p>
+    </div>
+    <div class="type-sample">
+      <p class="label">Body — Inter</p>
+      <p class="body-demo">Inter is a contemporary, highly legible sans that echoes UCLA's Helvetica/Karbon lineage while staying free and reproducible. Paired with a serif headline, it keeps reports readable and slides crisp without feeling either stuffy or sporty.</p>
+    </div>
+    <div class="type-sample">
+      <p class="label">Monospace / Code — JetBrains Mono</p>
+      <p class="mono-demo">library(sqldf)
+sqldf("SELECT region, AVG(score) FROM data GROUP BY region")</p>
+    </div>
+
+    <h3>Font stack &amp; substitutes</h3>
+    <table class="specs">
+      <tr><th>Role</th><th>Official brand font</th><th>Free font used here</th><th>System fallback</th></tr>
+      <tr><td>Headings</td><td>GS Serif (Goldman, proprietary)</td><td><code>Source Serif 4</code></td><td>Georgia / Times</td></tr>
+      <tr><td>Body</td><td>Karbon / Helvetica (UCLA)</td><td><code>Inter</code></td><td>Helvetica / Arial</td></tr>
+      <tr><td>Code</td><td>—</td><td><code>JetBrains Mono</code></td><td>Consolas / Courier</td></tr>
+    </table>
+    <div class="note">Brand-official faces (GS Serif/Sans, UCLA Karbon) are licensed; the open Source Serif 4 + Inter pairing matches the intended character and works across LaTeX, R, and PowerPoint without licensing friction.</div>
+  </section>
+
+  <section>
+    <h2>In use</h2>
+    <p class="lead">A title block showing the blue-and-gold split in action.</p>
+    <div class="mock">
+      <div class="bar"></div>
+      <div class="body">
+        <p class="k">STAT 418 · Final Project</p>
+        <h4>Predicting outcomes from messy, multi-source data</h4>
+        <p>Jeremy · Summer 2026 · Professor Christopher Barr</p>
+      </div>
+    </div>
+  </section>
+
+</div>
+<footer>Option 2 of 3 — "Westwood." Palette and type for STAT 418 deliverables. Sources: UCLA Brand Guidelines (brand.ucla.edu) and published Goldman Sachs brand color/typography references.</footer>
+</body>
+</html>
