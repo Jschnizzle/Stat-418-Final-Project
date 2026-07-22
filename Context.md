@@ -4,7 +4,7 @@
 >
 > Scope note: this is the **working-root** context (the actual analysis in progress). A separate, more course-oriented brief lives at `World Cup Project/Context/Context.md` (dataset scaffold) and `Demonstration/Context/Context.md` (the instructor's example). This file is the day-to-day one.
 
-_Last updated: 2026-07-10 (rev 2 — men's/women's filter bug documented; league downloaders added)_
+_Last updated: 2026-07-21 (rev 3 — Poisson men's-1970+ model added (§10); 1994 scoring-rule break documented; dispersion battery de-scoped)_
 
 ---
 
@@ -18,8 +18,12 @@ STAT 418 (UCLA, Summer 2026, instructor Christopher Barr). Final project (30% of
 
 | Path | What it is |
 |---|---|
-| `worldcupdata_processing.R` | **Class 5 inference** — builds a team-per-tournament table from the datahub World Cup CSVs via `sqldf`, fits several `lm()` point models. |
-| `transformed_data.csv` | Exported `model_df` from the script above (see §4 — **had a men's/women's bug; fix via `filter_transformed_mens.R`**). |
+| `worldcupdata_processing.R` | **Class 5 inference** — builds a team-per-tournament table from the datahub World Cup CSVs via `sqldf`, fits several `lm()` point models. **Still carries the men's-filter bug (§3) if reused.** |
+| `poisson_mens_groupstage.R` | **NEW (2026-07-21)** — men's-1970+ Poisson model of group-stage `points_std` (single 3-1-0 rule). Filter bug fixed at source, pruned predictors, stepwise AIC/BIC selection, pseudo-R², team-clustered SEs. See §10. |
+| `mens_groupstage_1970on.csv` | Clean 368-row men's-1970+ modeling table written by `poisson_mens_groupstage.R`. |
+| `CLAUDE_CODE_TASK.md` | Handoff brief for running `poisson_mens_groupstage.R` via Claude Code on Jeremy's machine (needs R, which the Cowork sandbox lacks). |
+| `diagnostics.png` | Poisson residual diagnostics (written when the script runs). |
+| `transformed_data.csv` | Exported `model_df` from `worldcupdata_processing.R` (see §4 — **had a men's/women's bug; fix via `filter_transformed_mens.R`**). |
 | `transformed_data_all.csv` | Backup of the full (men's + women's) table, written by `filter_transformed_mens.R` before it overwrites `transformed_data.csv`. |
 | `filter_transformed_mens.R` | Filters `transformed_data.csv` down to men's-only (581 → 445 rows) using the source gender labels (see §4). |
 | `england_pl_scoring_analysis.R` | Exploratory: England WC group-stage performance vs. Premier League scoring (see §6). |
@@ -141,13 +145,47 @@ The scaffold's `Context.md` notes that `worldcupdata_processing.R` is effectivel
 - Clean experience metric adopted: **`avg_prior_wc`** over the leaky `avg_career_tournaments`.
 - Side project: **England WC performance vs. PL scoring**, exploring both league-wide and top-6 angles.
 - Project positioned **data-first** on the data→theory spectrum.
+- **Poisson track (2026-07-21):** outcome recomputed to a single 3-1-0 rule (`points_std = 3*wins + draws`) to kill the 1994 scoring-rule artifact; modeling window fixed to **men's, 1970+**. Approach = Poisson GLM with **stepwise AIC/BIC selection** on a pre-pruned predictor set; significance via **team-clustered SEs**; overdispersion handling (quasi-Poisson / negative binomial) **explicitly de-scoped**.
 
 ## 9. Open threads / next steps
 
-- **Patch the men's filter bug in `worldcupdata_processing.R`** (§3): change `LIKE '%Men''s%'` → `LIKE '%FIFA Men''s%'` in the `base`, `team_experience`, `squad_experience` blocks, then **re-run models `m1`–`m5`/`m2c` on the corrected 445-row men's table.** (Run `filter_transformed_mens.R` now to clean the exported CSV in the meantime.)
-- Move/restyle `worldcupdata_processing.R` into `World Cup Project/Project/Class 5 - Inference/`.
+- **Run `poisson_mens_groupstage.R` on Jeremy's machine via Claude Code** (`CLAUDE_CODE_TASK.md`) — it needs R, which the Cowork sandbox doesn't have; pipeline logic was validated by a Python replication only.
+- **Decide AIC vs BIC model** from the stepwise output; optionally add `f_structural` as a pre-specified comparison to sidestep post-selection inference; VIF-check the two experience terms (`prior_tournaments` vs `avg_prior_wc`).
+- Men's-filter bug is **fixed at source in `poisson_mens_groupstage.R`**, but **`worldcupdata_processing.R` still carries it** (§3): if reused, change `LIKE '%Men''s%'` → `LIKE '%FIFA Men''s%'` in the `base`, `team_experience`, `squad_experience` blocks and re-run `m1`–`m5`/`m2c` on the corrected 445-row table.
+- Move/restyle `worldcupdata_processing.R` (and the new Poisson script) into `World Cup Project/Project/Class 5 - Inference/`.
 - Build out Classes 3, 4, 6, 9, 11 in the scaffold.
 - PL side project robustness: try `TOP_N = 4` or a fixed big-six; swap outcome to `advanced`/stage reached; add non-scoring PL features (discipline, competitiveness).
 - Pick a visual style option (Marquee / Westwood / Bruin).
 - Decide the headline narrative; draft the LaTeX PDF and PPTX outlines.
 - Consider Class 6 `ranger` random-forest predicting advancement (train-old/test-recent).
+
+---
+
+## 10. Poisson model for men's group-stage points (added 2026-07-21)
+
+New this session: a self-contained Poisson modeling script, a Claude Code handoff brief, and a newly-surfaced data gotcha (the 1994 scoring-rule break). Grew out of a request to fit a Poisson model on "most/all" variables for men's WC data, 1970+.
+
+### 🐛 NEW GOTCHA — the `points` column changes scoring rule in 1994
+Raw `points` in `group_standings.csv` uses **2 points for a win before 1994** and **3 points from 1994 on** (verified: matches the 2-pt rule 100% for 1970–1990, the 3-pt rule 100% for 1994–2022). This shifts both the scale (max 6 vs 9) **and** the value of a draw relative to a win, so raw `points` is not comparable across eras. **Fix adopted:** recompute one rule for all years — `points_std = 3*wins + draws` — the outcome in the new script. (A percentage-of-max normalization was considered and rejected: it fixes the scale but not the draw re-weighting, and turns a count into a bounded proportion that breaks Poisson.)
+
+### Modeling window (why men's + 1970+)
+- Cards (`bookings`) only exist from 1970.
+- From 1970 on every team plays exactly **3 group games** → fixed denominator, no Poisson offset needed (script `stopifnot`s `played == 3`).
+- Men's isolated at source via `LIKE '%FIFA Men''s%'` (case-insensitive-LIKE bug fixed): **445 men's rows** all years, **368** after the 1970 cut.
+
+### Data restrictions catalogued (these drove predictor pruning)
+- **Deterministic identities / tautology** — excluded as predictors of the points outcome: `wins`, `draws`, `losses` (`points_std = 3*wins+draws`), `goals_for`/`goals_against`/`goal_difference` (`GD = GF − GA` exactly), `points_raw`, `advanced` (derived from ranking).
+- **Collinear clusters (keep one each):** experience — kept `prior_tournaments` (team) + `avg_prior_wc` (squad), r≈0.49, different constructs; dropped `max_prior_wc`/`debutant_share` (avg_prior_wc vs debutant_share r=−0.95) and `avg_career_tournaments` (leaky, counts future). Discipline — kept `total_cards`, dropped `yellows`/`reds` (yellows~total_cards r=0.99).
+- **Sparse factor level:** confederation `OFC` = 2 rows (New Zealand) → collapsed to "OTHER"; UEFA is the baseline.
+- **Non-independence:** the same nation recurs across tournaments → **team-clustered SEs** (not plain Poisson SEs) for honest significance.
+
+### Script contents — `poisson_mens_groupstage.R`
+Rebuilds the men's table from `worldcup_data/` (all predictor blocks re-run with the fixed filter), computes `points_std`, filters to 1970+, collapses `conf`, centers `year_c` (4-yr units on 1994), writes `mens_groupstage_1970on.csv` + `diagnostics.png`. Model specs:
+- `f_candidate`: `points_std ~ prior_tournaments + avg_prior_wc + avg_age + forward_share + defender_share + squad_size + is_host + foreign_manager + conf + year_c + total_cards`.
+- `f_structural`: same minus `total_cards` (pre-tournament only; cleaner inference story).
+- **Selection:** base `step()` — AIC & BIC, forward & both — on the pre-pruned pool; default reported model = `sel_aic_both`. (BIC penalty `k = log n` → usually fewer terms. Post-selection p-values are optimistic.)
+- **Overall fit:** **no true R² for a Poisson GLM.** Report McFadden pseudo-R² (~0.10) and deviance pseudo-R² (~0.26), deviance GOF p-value, AIC/BIC, LRT vs null.
+- **De-scoped this session (removed at Jeremy's request):** AER dispersiontest, quasi-Poisson, negative binomial. Kept team-clustered SEs (that's non-independence, not dispersion). Caveat retained: fit shows mild overdispersion (deviance/df ≈ 1.47), so model-based p-values are slightly optimistic; clustered SEs partially compensate.
+
+### Validation
+R is not available in the Cowork sandbox, so the full pipeline was **independently replicated in Python** (pandas + statsmodels): 368 rows, `played == 3` throughout, no missing predictors, Poisson converges with finite coefficients, and sensible significant terms (`prior_tournaments` +, `is_host` + with RR≈1.58, confederation effects strongest for UEFA/CONMEBOL). Actual R run still pending on Jeremy's machine — see `CLAUDE_CODE_TASK.md`.
