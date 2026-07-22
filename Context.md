@@ -4,7 +4,7 @@
 >
 > Scope note: this is the **working-root** context (the actual analysis in progress). A separate, more course-oriented brief lives at `World Cup Project/Context/Context.md` (dataset scaffold) and `Demonstration/Context/Context.md` (the instructor's example). This file is the day-to-day one.
 
-_Last updated: 2026-07-21 (rev 3 — Poisson men's-1970+ model added (§10); 1994 scoring-rule break documented; dispersion battery de-scoped)_
+_Last updated: 2026-07-21 (rev 4 — model-only split script + `DATA_PIPELINE.md` added; per-row `row_id`/`campaign` keys added for Tableau; GitHub repo situation clarified; Tableau bubble-plot recipes worked out (§11))_
 
 ---
 
@@ -19,8 +19,10 @@ STAT 418 (UCLA, Summer 2026, instructor Christopher Barr). Final project (30% of
 | Path | What it is |
 |---|---|
 | `worldcupdata_processing.R` | **Class 5 inference** — builds a team-per-tournament table from the datahub World Cup CSVs via `sqldf`, fits several `lm()` point models. **Still carries the men's-filter bug (§3) if reused.** |
-| `poisson_mens_groupstage.R` | **NEW (2026-07-21)** — men's-1970+ Poisson model of group-stage `points_std` (single 3-1-0 rule). Filter bug fixed at source, pruned predictors, stepwise AIC/BIC selection, pseudo-R², team-clustered SEs. See §10. |
-| `mens_groupstage_1970on.csv` | Clean 368-row men's-1970+ modeling table written by `poisson_mens_groupstage.R`. |
+| `poisson_mens_groupstage.R` | **Build + model** — men's-1970+ Poisson model of group-stage `points_std` (single 3-1-0 rule). Rebuilds the table from `worldcup_data/` (filter bug fixed at source), pruned predictors, stepwise AIC/BIC selection, pseudo-R², team-clustered SEs. Now also writes the `row_id`/`campaign` keys (§11). See §10. |
+| `poisson_mens_groupstage_model.R` | **NEW (rev 4)** — model-only split: loads `mens_groupstage_1970on.csv` and runs §§2–7 of the modeling (no data build). Re-relevels `conf` to UEFA after load (CSV flattens the factor). Use this for iterating on the model without re-running the `sqldf` pipeline (§11). |
+| `mens_groupstage_1970on.csv` | Clean 368-row men's-1970+ modeling table. **Now 35 cols** — `row_id` (1–368) and `campaign` ("Team Year") added as the first two columns (rev 4) so each row plots as its own mark in Tableau (§11). |
+| `DATA_PIPELINE.md` | **NEW (rev 4)** — plain-English writeup of every transformation/aggregation from the 8 raw `worldcup_data/` CSVs to `mens_groupstage_1970on.csv` (source tables, filters, predictor blocks, `points_std` recompute, 1970+ cut, which cols are usable predictors). |
 | `CLAUDE_CODE_TASK.md` | Handoff brief for running `poisson_mens_groupstage.R` via Claude Code on Jeremy's machine (needs R, which the Cowork sandbox lacks). |
 | `diagnostics.png` | Poisson residual diagnostics (written when the script runs). |
 | `transformed_data.csv` | Exported `model_df` from `worldcupdata_processing.R` (see §4 — **had a men's/women's bug; fix via `filter_transformed_mens.R`**). |
@@ -149,7 +151,8 @@ The scaffold's `Context.md` notes that `worldcupdata_processing.R` is effectivel
 
 ## 9. Open threads / next steps
 
-- **Run `poisson_mens_groupstage.R` on Jeremy's machine via Claude Code** (`CLAUDE_CODE_TASK.md`) — it needs R, which the Cowork sandbox doesn't have; pipeline logic was validated by a Python replication only.
+- **Run `poisson_mens_groupstage.R` on Jeremy's machine via Claude Code** (`CLAUDE_CODE_TASK.md`) — it needs R, which the Cowork sandbox doesn't have; pipeline logic was validated by a Python replication only. (The model-only `poisson_mens_groupstage_model.R` still needs a real R run too.)
+- **Push rev-4 changes to GitHub** — the project already lives on `main` at `https://github.com/Jschnizzle/Stat-418-Final-Project` (the `Various-Projects` branch idea was dropped). Only 7 files are new/changed vs the remote: the 6 new files (`CLAUDE_CODE_TASK.md`, `DATA_PIPELINE.md`, `diagnostics.png`, `mens_groupstage_1970on.csv`, `poisson_mens_groupstage.R`, `poisson_mens_groupstage_model.R`) + modified `Context.md`. The Cowork sandbox can't push (no credentials); do it from Git Bash or Claude Code on Jeremy's machine — commit only those files (the ~20 other "changed" files are just CRLF/LF line-ending noise). See §11.
 - **Decide AIC vs BIC model** from the stepwise output; optionally add `f_structural` as a pre-specified comparison to sidestep post-selection inference; VIF-check the two experience terms (`prior_tournaments` vs `avg_prior_wc`).
 - Men's-filter bug is **fixed at source in `poisson_mens_groupstage.R`**, but **`worldcupdata_processing.R` still carries it** (§3): if reused, change `LIKE '%Men''s%'` → `LIKE '%FIFA Men''s%'` in the `base`, `team_experience`, `squad_experience` blocks and re-run `m1`–`m5`/`m2c` on the corrected 445-row table.
 - Move/restyle `worldcupdata_processing.R` (and the new Poisson script) into `World Cup Project/Project/Class 5 - Inference/`.
@@ -189,3 +192,26 @@ Rebuilds the men's table from `worldcup_data/` (all predictor blocks re-run with
 
 ### Validation
 R is not available in the Cowork sandbox, so the full pipeline was **independently replicated in Python** (pandas + statsmodels): 368 rows, `played == 3` throughout, no missing predictors, Poisson converges with finite coefficients, and sensible significant terms (`prior_tournaments` +, `is_host` + with RR≈1.58, confederation effects strongest for UEFA/CONMEBOL). Actual R run still pending on Jeremy's machine — see `CLAUDE_CODE_TASK.md`.
+
+---
+
+## 11. Session rev 4 (2026-07-21) — docs, model-only split, Tableau keys, GitHub
+
+Follow-on session. No new modeling decisions; the work was packaging, reproducibility, and viz prep.
+
+### `DATA_PIPELINE.md` (new)
+Plain-English walkthrough of the whole build: the 8 source tables + join key `(tournament_id, team_id)`, the base-table filters (`LIKE '%FIFA Men''s%'` + group-stage restriction), all six predictor aggregations with their gotchas (age GLOB guard, backward-only experience, leaky cols), the `points_std = 3*wins + draws` recompute, the 1970+ cut (445→368), the `conf`/`year_c` derivations, the final 33-col shape, and which columns are usable predictors vs excluded. Documents the **current** `poisson_mens_groupstage.R` pipeline only (not the older buggy `worldcupdata_processing.R` path).
+
+### Model-only split — `poisson_mens_groupstage_model.R` (new)
+Jeremy wanted to iterate on the model without re-running the `sqldf` build every time. Split the script: the build stays in `poisson_mens_groupstage.R`; the new file just `read.csv("mens_groupstage_1970on.csv")` then runs selection → fit → overall-fit → clustered SEs → diagnostics (former §§4–7). **Key subtlety preserved:** CSV storage flattens the `conf` factor to plain text, so the model-only script re-applies `relevel(factor(conf), ref = "UEFA")` — without it the confederation baseline would default to alphabetical and coefficients would read differently. Kept the `played == 3` and `year >= 1970` guardrails as sanity checks on the loaded table. (Jeremy also added `rm( list = ls() )` at the top of this file.)
+
+### Per-row identifiers for Tableau — `row_id` + `campaign` (added to the CSV **and** the build script)
+`mens_groupstage_1970on.csv` had no unique row key, so Tableau averaged marks by `team_name`/`team_id`. Added two columns as the first two fields: `row_id` (integer 1–368) and `campaign` (readable label, e.g. "Soviet Union 1970" = `team_name` + `year`). Verified both `(team_name, year)` and `(tournament_id, team_id)` are unique across all 368 rows, so either is a valid key. Added to the live CSV (now 35 cols) and baked into `poisson_mens_groupstage.R` (built right before `write.csv`, placed first) so regeneration keeps them. Neither is a model predictor — the formulas reference columns by name, so the Poisson fit is unaffected. **Tableau tip recorded:** drag `campaign` (or `row_id`) onto Detail, or turn off Analysis → Aggregate Measures, to force one mark per campaign.
+
+### GitHub repo — situation clarified
+The dedicated repo `https://github.com/Jschnizzle/Stat-418-Final-Project` **already exists with the whole project on `main`** (everything, no per-project-branch convention — that convention belongs to the separate `Various-Projects` repo, which was the initial plan before switching). Diffed the remote `main` against the local folder: only **7 files** genuinely differ (the 6 rev-4 new files + `Context.md`); the other ~20 "changed" files are pure **CRLF/LF line-ending noise** (identical after stripping `\r`) and should NOT be committed. The Cowork sandbox **cannot push** (no stored GitHub credentials; pasting a PAT is off-limits) — the push must run from Git Bash or Claude Code on Jeremy's machine, staging only the 7 real files onto `main`. Ready-to-paste commands/prompt were provided in-thread. **Not yet pushed.**
+
+### Tableau bubble-plot recipes (worked out, not built)
+Two count-scaled scatter plots discussed; general rule for both: **size by area, not radius**; optionally add a redundant color-by-count and a reference line.
+- **Goals-for vs goals-against (count bubbles):** 368 campaigns → 92 distinct (GF, GA) points, counts 1–16 (densest = 2–2 with 16). Options laid out (Tableau native / R `ggplot2::geom_count` / Plotly HTML / Python) — nothing built yet.
+- **`defender_share` vs `points_std` (Tableau):** the "make the axis pills **Dimensions** but keep them **Continuous**, then put **Number of Records** on Size" recipe. `defender_share` has only 20 distinct values (small squads → coarse fractions), so raw counting works (88 cells, max 14); optional 0.05 bins give bolder bubbles (38 cells, max 27). Noted the y-axis naturally **skips 8** (`3*wins + draws` over 3 games can't equal 8), and suggested a linear Trend Line since this is predictor-vs-outcome.

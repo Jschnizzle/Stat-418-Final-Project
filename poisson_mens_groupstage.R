@@ -208,6 +208,16 @@ model_df$conf <- relevel(factor(model_df$conf), ref = "UEFA")   # UEFA = baselin
 #   year_c is in 4-year units centered on 1994 (the mid-era pivot).
 model_df$year_c <- (model_df$year - 1994) / 4
 
+# ---- Unique per-row identifier (for Tableau / disaggregated plotting) --------
+#   row_id   = stable integer key, 1..N (guaranteed unique per campaign).
+#   campaign = readable unique label, e.g. "Brazil 1970" (team_name + year).
+#   Neither is a model predictor -- they exist so each row can be plotted as its
+#   own mark in Tableau instead of being averaged by team_name / team_id.
+model_df$row_id   <- seq_len(nrow(model_df))
+model_df$campaign <- paste(model_df$team_name, model_df$year)
+id_cols  <- c("row_id", "campaign")
+model_df <- model_df[, c(id_cols, setdiff(names(model_df), id_cols))]
+
 cat(sprintf("Modeling table: %d rows x %d cols (men's, 1970+)\n",
             nrow(model_df), ncol(model_df)))
 cat("points_std range:", range(model_df$points_std),
